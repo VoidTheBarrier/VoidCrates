@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "voidcrates",
+  "version": "${version}",
+  "name": "VoidCrates",
+  "description": "A feature-rich crate mod for Fabric servers.",
+  "authors": [
+    "Stampede (original SkiesCrates)",
+    "VoidCrates contributors"
+  ],
+  "contact": {
+    "sources": "https://github.com/yourusername/VoidCrates"
+  },
+  "license": "MPL-2.0",
+  "entrypoints": {
+    "main": [
+      "dev.voidcrates.VoidCrates"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "fabric-language-kotlin": ">=1.13.0",
+    "minecraft": ">=1.21.11"
+  },
+  "mixins": ["voidcrates.mixins.json"],
+  "accessWidener": "voidcrates.accesswidener"
+}

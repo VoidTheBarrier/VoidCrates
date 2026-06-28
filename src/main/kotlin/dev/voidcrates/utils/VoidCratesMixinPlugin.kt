@@ -1,0 +1,24 @@
+package dev.voidcrates.utils
+
+import net.fabricmc.loader.api.FabricLoader
+import org.objectweb.asm.tree.ClassNode
+import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin
+import org.spongepowered.asm.mixin.extensibility.IMixinInfo
+
+class VoidCratesMixinPlugin : IMixinConfigPlugin {
+    override fun onLoad(mixinPackage: String?) {}
+    override fun getRefMapperConfig(): String? = null
+
+    override fun shouldApplyMixin(targetClassName: String?, mixinClassName: String?): Boolean {
+        val holoMixins = setOf(
+            "dev.voidcrates.mixins.ViewerHandlerMixin",
+            "dev.voidcrates.mixins.ViewerHandlerAccessor"
+        )
+        return !(mixinClassName in holoMixins && !FabricLoader.getInstance().isModLoaded("holodisplays"))
+    }
+
+    override fun acceptTargets(p0: Set<String?>?, p1: Set<String?>?) {}
+    override fun getMixins(): List<String?>? = null
+    override fun preApply(p0: String?, p1: ClassNode?, p2: String?, p3: IMixinInfo?) {}
+    override fun postApply(p0: String?, p1: ClassNode?, p2: String?, p3: IMixinInfo?) {}
+}

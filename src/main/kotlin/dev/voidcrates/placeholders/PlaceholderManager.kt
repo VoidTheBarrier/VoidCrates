@@ -1,0 +1,57 @@
+package dev.voidcrates.placeholders
+
+import dev.voidcrates.placeholders.services.DefaultPlaceholderService
+import dev.voidcrates.placeholders.services.ImpactorPlaceholderService
+import dev.voidcrates.placeholders.services.MiniPlaceholdersService
+import dev.voidcrates.placeholders.services.PlaceholderAPIService
+import dev.voidcrates.placeholders.type.player.PlayerKeys
+import net.minecraft.server.level.ServerPlayer
+import java.util.stream.Stream
+
+object PlaceholderManager {
+    private val services: MutableList<IPlaceholderService> = mutableListOf()
+
+    fun init() {
+        services.add(DefaultPlaceholderService())
+        for (service in PlaceholderMods.entries) {
+            if (service.isModPresent()) {
+                services.add(getServiceForType(service))
+            }
+        }
+        registerPlaceholders()
+    }
+
+    private fun registerPlaceholders() {
+        // SERVER PLACEHOLDERS
+//        Stream.of(
+//          None yet :)
+//        ).forEach { placeholder -> services.forEach { it.registerServer(placeholder) } }
+
+        // PLAYER PLACEHOLDERS
+        Stream.of(
+            PlayerKeys()
+        ).forEach { placeholder -> services.forEach { it.registerPlayer(placeholder) } }
+
+        services.forEach { it.finalizeRegister() }
+    }
+
+    fun parse(player: ServerPlayer, text: String, additionalPlaceholders: Map<String, String> = emptyMap()): String {
+        var returnValue = text.let {
+            additionalPlaceholders.entries.fold(it) { acc, (key, value) ->
+                acc.replace(key, value)
+            }
+        }
+        for (service in services) {
+            returnValue = service.parsePlaceholders(player, returnValue)
+        }
+        return returnValue
+    }
+
+    private fun getServiceForType(placeholderMod: PlaceholderMods): IPlaceholderService {
+        return when (placeholderMod) {
+            PlaceholderMods.IMPACTOR -> ImpactorPlaceholderService()
+            PlaceholderMods.PLACEHOLDERAPI -> PlaceholderAPIService()
+            PlaceholderMods.MINIPLACEHOLDERS -> MiniPlaceholdersService()
+        }
+    }
+}

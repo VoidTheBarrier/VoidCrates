@@ -1,0 +1,99 @@
+package dev.voidcrates.commands.subcommands
+
+import com.mojang.brigadier.arguments.StringArgumentType
+import com.mojang.brigadier.context.CommandContext
+import com.mojang.brigadier.tree.LiteralCommandNode
+import dev.voidcrates.VoidCrates
+import dev.voidcrates.config.ConfigManager
+import dev.voidcrates.config.block.CrateBlockLocation
+import dev.voidcrates.data.DimensionalBlockPos
+import dev.voidcrates.managers.CratesManager
+import dev.voidcrates.managers.HologramsManager
+import dev.voidcrates.utils.SubCommand
+import dev.voidcrates.utils.asAdventure
+import me.lucko.fabric.api.permissions.v0.Permissions
+import net.fabricmc.loader.api.FabricLoader
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import net.minecraft.commands.CommandSourceStack
+import net.minecraft.commands.Commands
+import net.minecraft.world.phys.BlockHitResult
+
+class SetCommand : SubCommand {
+    override fun build(): LiteralCommandNode<CommandSourceStack> {
+        return Commands.literal("set")
+            .requires(Permissions.require("${VoidCrates.MOD_ID}.command.set", 2))
+            .then(Commands.argument("crate", StringArgumentType.string())
+                .suggests { _, builder ->
+                    ConfigManager.CRATES.forEach { builder.suggest(it.key) }
+                    builder.buildFuture()
+                }
+                .executes { ctx: CommandContext<CommandSourceStack> ->
+                    execute(
+                        ctx,
+                        StringArgumentType.getString(ctx, "crate")
+                    )
+                }
+            )
+            .build()
+    }
+
+    companion object {
+        fun execute(
+            ctx: CommandContext<CommandSourceStack>,
+            crateId: String,
+        ): Int {
+            val player = ctx.source.playerOrException
+
+            val crate = ConfigManager.CRATES[crateId] ?: run {
+                ctx.source.sendMessage(Component.text("Crate $crateId could not be found!", NamedTextColor.RED))
+                return 0
+            }
+
+            val blockResult = player.pick(5.0, 1.0F, false)
+            if (blockResult == null || blockResult !is BlockHitResult) {
+                ctx.source.sendMessage(Component.text("You must be looking at a block to set a crate!", NamedTextColor.RED))
+                return 0
+            }
+
+            val state = (player.level() as net.minecraft.server.level.ServerLevel).getBlockState(blockResult.blockPos)
+
+            if (state.isAir) {
+                ctx.source.sendMessage(Component.text("You must be looking at a valid block to set a crate!", NamedTextColor.RED))
+                return 0
+            }
+
+            val dimPos = DimensionalBlockPos(
+                (player.level() as net.minecraft.server.level.ServerLevel).dimension().identifier().asString(),
+                blockResult.blockPos.x,
+                blockResult.blockPos.y,
+                blockResult.blockPos.z
+            )
+            if (CratesManager.getCrateFromPos(dimPos) != null) {
+                ctx.source.sendMessage("<red>This block is already set as a ${crate.name} crate!".asAdventure())
+                return 0
+            }
+
+            val blockLocation = CrateBlockLocation(dimPos.dimension, dimPos.x, dimPos.y, dimPos.z)
+            crate.block.locations.add(blockLocation)
+
+            if (!ConfigManager.saveFile("crates/${crateId}.json", crate)) {
+                ctx.source.sendMessage(Component.text("Failed to save crate data! Check the console for additional errors...", NamedTextColor.RED))
+                return 0
+            }
+
+            val instance = CratesManager.loadCrateLocation(crate, blockLocation) ?: run {
+                ctx.source.sendMessage(Component.text("Failed to load crate location! Check the console for additional errors...", NamedTextColor.RED))
+                return 0
+            }
+
+            if (FabricLoader.getInstance().isModLoaded("holodisplays")) {
+                HologramsManager.loadCrateHologram(instance)
+            }
+
+            ctx.source.sendMessage(Component.text("Successfully set a ${crate.name} crate at the position ${dimPos.x}, ${dimPos.y}, ${dimPos.z}!", NamedTextColor.GREEN))
+
+            return 1
+        }
+    }
+}
