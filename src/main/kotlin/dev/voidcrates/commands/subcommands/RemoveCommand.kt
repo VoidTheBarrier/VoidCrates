@@ -33,18 +33,18 @@ class RemoveCommand : SubCommand {
 
             val blockResult = player.pick(5.0, 1.0F, false)
             if (blockResult == null || blockResult !is BlockHitResult) {
-                ctx.source.sendMessage(Component.text("You must be looking at a block to remove a crate!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("You must be looking at a block to remove a crate!", NamedTextColor.RED)))
                 return 0
             }
 
             val state = (player.level() as net.minecraft.server.level.ServerLevel).getBlockState(blockResult.blockPos)
             if (state.isAir) {
-                ctx.source.sendMessage(Component.text("You must be looking at a valid block to remove a crate!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("You must be looking at a valid block to remove a crate!", NamedTextColor.RED)))
                 return 0
             }
 
             val dimPos = DimensionalBlockPos(
-                (player.level() as net.minecraft.server.level.ServerLevel).dimension().identifier().asString(),
+                (player.level() as net.minecraft.server.level.ServerLevel).dimension().identifier().toString(),
                 blockResult.blockPos.x,
                 blockResult.blockPos.y,
                 blockResult.blockPos.z
@@ -54,7 +54,7 @@ class RemoveCommand : SubCommand {
                 crate.block.locations.any { it.equalsDimBlockPos(dimPos) }
             }
             if (crateInstances.isEmpty()) {
-                ctx.source.sendMessage("<red>This block is not set as any active crate!".asAdventure())
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative("<red>This block is not set as any active crate!".asAdventure()))
                 return 0
             }
 
@@ -69,7 +69,7 @@ class RemoveCommand : SubCommand {
                     crateLoc.equalsDimBlockPos(dimPos)
                 }
                 if (!ConfigManager.saveFile("crates/${crate.id}.json", crate)) {
-                    ctx.source.sendMessage(Component.text("Failed to save crate data for ${crate.id}! Check the console for additional errors...", NamedTextColor.RED))
+                    ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Failed to save crate data for ${crate.id}! Check the console for additional errors...", NamedTextColor.RED)))
                     continue
                 }
 
@@ -77,11 +77,11 @@ class RemoveCommand : SubCommand {
             }
 
             if (removed == 0) {
-                ctx.source.sendMessage(Component.text("Failed to remove crates at the position ${dimPos.x}, ${dimPos.y}, ${dimPos.z}! Check the console for additional errors...", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Failed to remove crates at the position ${dimPos.x}, ${dimPos.y}, ${dimPos.z}! Check the console for additional errors...", NamedTextColor.RED)))
                 return 0
             }
 
-            ctx.source.sendMessage(Component.text("Successfully removed $removed crate(s) at the position ${dimPos.x}, ${dimPos.y}, ${dimPos.z}!", NamedTextColor.GREEN))
+            ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Successfully removed $removed crate(s) at the position ${dimPos.x}, ${dimPos.y}, ${dimPos.z}!", NamedTextColor.GREEN)))
 
             return 1
         }

@@ -160,7 +160,7 @@ class KeyCommand : SubCommand {
             silent: Boolean = false
         ): Int {
             val key = ConfigManager.KEYS[keyId] ?: run {
-                ctx.source.sendMessage(Component.text("Key $keyId could not be found!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Key $keyId could not be found!", NamedTextColor.RED)))
                 return 0
             }
 
@@ -173,29 +173,29 @@ class KeyCommand : SubCommand {
             CompletableFuture.allOf(*results.toTypedArray()).thenAccept {
                 val successful = results.count { it.join() }
                 when (successful) {
-                    0 -> ctx.source.sendMessage(
+                    0 -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                         Component.text("Failed to give ${amount}x $keyId keys to any players!")
                             .color(NamedTextColor.RED)
-                    )
+                    ))
                     targets.size -> {
                         if (targets.size == 1) {
-                            ctx.source.sendMessage(
+                            ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                                 Component.text("Successfully gave ${amount}x $keyId keys to ").color(NamedTextColor.GREEN)
                                     .append(Component.text(targets.firstOrNull()?.gameProfile?.name ?: "UNKNOWN"))
-                            )
+                            ))
                         } else {
-                            ctx.source.sendMessage(
+                            ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                                 Component.text("Successfully gave ${amount}x $keyId keys to $successful players!").color(NamedTextColor.GREEN)
-                            )
+                            ))
                         }
 
                     }
-                    else -> ctx.source.sendMessage(
+                    else -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                         Component.text(
                             "Successfully gave ${amount}x $keyId keys to $successful player(s), " +
                                     "but failed to give it to ${targets.size - successful} player(s)!"
                         ).color(NamedTextColor.YELLOW),
-                    )
+                    ))
                 }
             }
 
@@ -210,13 +210,13 @@ class KeyCommand : SubCommand {
             silent: Boolean = false
         ): Int {
             val key = ConfigManager.KEYS[keyId] ?: run {
-                ctx.source.sendMessage(Component.text("Key $keyId could not be found!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Key $keyId could not be found!", NamedTextColor.RED)))
                 return 0
             }
 
             // TODO: Make this support non virtual keys
             if (!key.virtual) {
-                ctx.source.sendMessage(Component.text("Key $keyId is not a virtual key!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Key $keyId is not a virtual key!", NamedTextColor.RED)))
                 return 0
             }
 
@@ -229,21 +229,21 @@ class KeyCommand : SubCommand {
             CompletableFuture.allOf(*results.toTypedArray()).thenAccept {
                 val successful = results.count { it.join() }
                 when (successful) {
-                    0 -> ctx.source.sendMessage(
+                    0 -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                         Component.text("Failed to take ${amount}x $keyId keys from players!", NamedTextColor.RED)
-                    )
+                    ))
 
-                    targets.size -> ctx.source.sendMessage(
+                    targets.size -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                         Component.text("Successfully took ${amount}x $keyId keys from $successful players!")
                             .color(NamedTextColor.GREEN),
-                    )
+                    ))
 
-                    else -> ctx.source.sendMessage(
+                    else -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                         Component.text(
                             "Successfully took ${amount}x $keyId keys from $successful player(s), " +
                                     "but failed to take from ${targets.size - successful} player(s)!"
                         ).color(NamedTextColor.YELLOW),
-                    )
+                    ))
                 }
             }
 
@@ -258,18 +258,18 @@ class KeyCommand : SubCommand {
             silent: Boolean = false
         ): Int {
             val key = ConfigManager.KEYS[keyId] ?: run {
-                ctx.source.sendMessage(Component.text("Key $keyId could not be found!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Key $keyId could not be found!", NamedTextColor.RED)))
                 return 0
             }
 
             // TODO: Make this support non virtual keys
             if (!key.virtual) {
-                ctx.source.sendMessage(Component.text("Key $keyId is not a virtual key!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Key $keyId is not a virtual key!", NamedTextColor.RED)))
                 return 0
             }
 
             if (amount <= 0) {
-                ctx.source.sendMessage(Component.text("Amount must be greater than 0!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Amount must be greater than 0!", NamedTextColor.RED)))
                 return 0
             }
 
@@ -282,16 +282,16 @@ class KeyCommand : SubCommand {
             CompletableFuture.allOf(*results.toTypedArray()).thenAccept {
                 val successful = results.count { it.join() }
                 when (successful) {
-                    0 -> ctx.source.sendMessage(
+                    0 -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                         Component.text("Failed to set ${amount}x $keyId keys for players!", NamedTextColor.RED)
-                    )
-                    targets.size -> ctx.source.sendMessage(
+                    ))
+                    targets.size -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                         Component.text("Successfully set ${amount}x $keyId keys for $successful players!").color(NamedTextColor.GREEN),
-                    )
-                    else -> ctx.source.sendMessage(
+                    ))
+                    else -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                         Component.text("Successfully set ${amount}x $keyId keys for $successful player(s), " +
                                 "but failed to set for ${targets.size - successful} player(s)!").color(NamedTextColor.YELLOW),
-                    )
+                    ))
                 }
             }
 

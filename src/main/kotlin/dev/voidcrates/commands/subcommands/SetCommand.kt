@@ -46,31 +46,31 @@ class SetCommand : SubCommand {
             val player = ctx.source.playerOrException
 
             val crate = ConfigManager.CRATES[crateId] ?: run {
-                ctx.source.sendMessage(Component.text("Crate $crateId could not be found!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Crate $crateId could not be found!", NamedTextColor.RED)))
                 return 0
             }
 
             val blockResult = player.pick(5.0, 1.0F, false)
             if (blockResult == null || blockResult !is BlockHitResult) {
-                ctx.source.sendMessage(Component.text("You must be looking at a block to set a crate!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("You must be looking at a block to set a crate!", NamedTextColor.RED)))
                 return 0
             }
 
             val state = (player.level() as net.minecraft.server.level.ServerLevel).getBlockState(blockResult.blockPos)
 
             if (state.isAir) {
-                ctx.source.sendMessage(Component.text("You must be looking at a valid block to set a crate!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("You must be looking at a valid block to set a crate!", NamedTextColor.RED)))
                 return 0
             }
 
             val dimPos = DimensionalBlockPos(
-                (player.level() as net.minecraft.server.level.ServerLevel).dimension().identifier().asString(),
+                (player.level() as net.minecraft.server.level.ServerLevel).dimension().identifier().toString(),
                 blockResult.blockPos.x,
                 blockResult.blockPos.y,
                 blockResult.blockPos.z
             )
             if (CratesManager.getCrateFromPos(dimPos) != null) {
-                ctx.source.sendMessage("<red>This block is already set as a ${crate.name} crate!".asAdventure())
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative("<red>This block is already set as a ${crate.name} crate!".asAdventure()))
                 return 0
             }
 
@@ -78,12 +78,12 @@ class SetCommand : SubCommand {
             crate.block.locations.add(blockLocation)
 
             if (!ConfigManager.saveFile("crates/${crateId}.json", crate)) {
-                ctx.source.sendMessage(Component.text("Failed to save crate data! Check the console for additional errors...", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Failed to save crate data! Check the console for additional errors...", NamedTextColor.RED)))
                 return 0
             }
 
             val instance = CratesManager.loadCrateLocation(crate, blockLocation) ?: run {
-                ctx.source.sendMessage(Component.text("Failed to load crate location! Check the console for additional errors...", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Failed to load crate location! Check the console for additional errors...", NamedTextColor.RED)))
                 return 0
             }
 
@@ -91,7 +91,7 @@ class SetCommand : SubCommand {
                 HologramsManager.loadCrateHologram(instance)
             }
 
-            ctx.source.sendMessage(Component.text("Successfully set a ${crate.name} crate at the position ${dimPos.x}, ${dimPos.y}, ${dimPos.z}!", NamedTextColor.GREEN))
+            ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Successfully set a ${crate.name} crate at the position ${dimPos.x}, ${dimPos.y}, ${dimPos.z}!", NamedTextColor.GREEN)))
 
             return 1
         }

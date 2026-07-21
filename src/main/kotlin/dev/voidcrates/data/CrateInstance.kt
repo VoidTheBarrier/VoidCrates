@@ -10,6 +10,7 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.phys.Vec3
 
 class CrateInstance(
     val crate: Crate,
@@ -41,7 +42,7 @@ class CrateInstance(
                 if (ticks++ >= 20) {
                     ticks = 0
                     nearPlayers = level.players().filter { p ->
-                        p.distanceToSqr(pos.bottomCenter) < particle.getDistance()
+                        p.distanceToSqr(Vec3.atBottomCenterOf(pos)) < particle.getDistance()
                     }.toMutableSet()
                 }
 

@@ -1,6 +1,7 @@
 package dev.voidcrates.data.actions.types
 
 import com.google.gson.annotations.JsonAdapter
+import dev.voidcrates.VoidCrates
 import dev.voidcrates.data.actions.Action
 import dev.voidcrates.data.actions.ActionType
 import dev.voidcrates.placeholders.PlaceholderManager
@@ -20,7 +21,7 @@ class MessagePlayer(
         Utils.printDebug("[ACTION - ${type.name}] Player(${player.gameProfile.name}), Parsed Messages($parsedMessages): $this")
 
         for (line in parsedMessages) {
-            player.sendMessage(line.asAdventure())
+            player.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(line.asAdventure()))
         }
     }
 

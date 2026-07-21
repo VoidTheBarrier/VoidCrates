@@ -21,7 +21,7 @@ class ReloadCommand : SubCommand {
     companion object {
         fun reload(ctx: CommandContext<CommandSourceStack>): Int {
             VoidCrates.INSTANCE.reload()
-            ctx.source.sendMessage(Component.text("Reloaded ${VoidCrates.MOD_NAME}!").color(NamedTextColor.GREEN))
+            ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Reloaded ${VoidCrates.MOD_NAME}!").color(NamedTextColor.GREEN)))
             return 1
         }
     }

@@ -3,8 +3,8 @@
 plugins {
     java
     idea
-    id("fabric-loom") version ("1.14-SNAPSHOT")
-    id("org.jetbrains.kotlin.jvm").version("2.3.0")
+    id("net.fabricmc.fabric-loom") version "1.17.12"
+    id("org.jetbrains.kotlin.jvm").version("2.4.0")
     `maven-publish`
 }
 
@@ -16,6 +16,19 @@ val modName = project.properties["mod_name"].toString()
 base.archivesName.set(modName)
 
 val minecraftVersion = project.properties["minecraft_version"].toString()
+
+// Cobblemon has no Minecraft 26.x release yet, so anything that references its API
+// (directly or transitively, e.g. CobbleDollars) cannot compile against real classes
+// right now. Excluded here rather than deleted so they're easy to re-enable later.
+sourceSets {
+    main {
+        kotlin {
+            exclude("dev/voidcrates/data/rewards/types/PokemonReward.kt")
+            exclude("dev/voidcrates/economy/services/CobbleDollarsEconomyService.kt")
+            exclude("dev/voidcrates/integrations/FlanIntegration.kt")
+        }
+    }
+}
 
 loom {
     mixin.useLegacyMixinAp.set(false)
@@ -29,12 +42,6 @@ loom {
     if (file("src/main/resources/$modId.accesswidener").exists()) {
         accessWidenerPath.set(file("src/main/resources/$modId.accesswidener"))
     }
-}
-
-val modImplementationInclude by configurations.register("modImplementationInclude")
-
-configurations {
-    modImplementationInclude
 }
 
 repositories {
@@ -62,12 +69,11 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
-    // Parchment has no 1.21.11 release; use plain Mojang mappings.
-    mappings(loom.officialMojangMappings())
+    // 26.x: game ships unobfuscated — no mappings line needed.
 
-    modImplementation("net.fabricmc:fabric-loader:${project.properties["loader_version"].toString()}")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${project.properties["fabric_version"].toString()}")
-    modImplementation("net.fabricmc:fabric-language-kotlin:${project.properties["fabric_kotlin_version"].toString()}")
+    implementation("net.fabricmc:fabric-loader:${project.properties["loader_version"].toString()}")
+    implementation("net.fabricmc.fabric-api:fabric-api:${project.properties["fabric_version"].toString()}")
+    implementation("net.fabricmc:fabric-language-kotlin:${project.properties["fabric_kotlin_version"].toString()}")
 
     // Coroutines
     implementation(include("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")!!)
@@ -75,43 +81,64 @@ dependencies {
 
     implementation(include("com.github.ben-manes.caffeine:caffeine:3.2.0")!!)
 
-    // Adventure Text – 6.x for 1.21.11; FabricServerAudiences still provided as a Fabric-specific subtype.
-    modImplementation(include("net.kyori:adventure-platform-fabric:6.8.0") {
-        exclude("com.google.code.gson")
-        exclude("ca.stellardrift", "colonel")
-        exclude("net.fabricmc")
-    })
+    // Adventure Text – 6.9.0 for 26.x
+    // NOTE: modImplementation does not exist in a non-obfuscated Loom environment (confirmed
+    // via Loom 1.17.12 source: LoomGradleExtensionApiImpl throws UnsupportedOperationException
+    // for remap-configuration methods when notObfuscated() is true - the mod* configuration
+    // family only ever existed to trigger intermediary<->named remapping, which 26.x has no
+    // use for). Plain implementation() is the correct current pattern.
+    //
+    // adventure-platform-fabric itself is intentionally NOT a dependency here. Its published POM
+    // has no meaningful <dependencies> section (the real graph lives only in Gradle Module
+    // Metadata), and the specific class VoidCrates needed from it - MinecraftServerAudiences -
+    // actually lives in a second module, adventure-platform-mod-shared, which was never published
+    // for unobfuscated Minecraft (last release 6.8.0, built against 1.21.11's intermediary names).
+    // Rather than depend on a fragile/absent artifact, VoidCratesAudiences.kt reimplements the
+    // three operations that were actually used, built entirely on the modules below plus vanilla's
+    // own ComponentSerialization.CODEC - see that file for the full explanation.
+    sequenceOf(
+        "net.kyori:adventure-key:4.26.1",
+        "net.kyori:adventure-api:4.26.1",
+        "net.kyori:adventure-text-minimessage:4.26.1",
+        "net.kyori:adventure-text-serializer-plain:4.26.1",
+        "net.kyori:adventure-text-serializer-gson:4.26.1",
+        "net.kyori:examination-api:1.3.0",
+        "net.kyori:examination-string:1.3.0"
+    ).forEach { dep ->
+        implementation(include(dep)!!)
+    }
 
     // Permissions API
-    modImplementation("me.lucko:fabric-permissions-api:0.6.1")?.let {
+    implementation("me.lucko:fabric-permissions-api:0.7.0")?.let {
         include(it)
     }
 
-    // GUI libraries
-    modImplementation("eu.pb4:sgui:1.12.0+1.21.11")?.let {
+    // GUI libraries (2.x for 26.x)
+    implementation("eu.pb4:sgui:2.1.0+26.2")?.let {
         include(it)
     }
 
-    // Events
-    modImplementation("xyz.nucleoid:stimuli:0.5.4+1.21.11")?.let {
+    // Events - bumped from stale 0.5.4+1.21.11 to the real 26.2-matched release.
+    // implementation (not modImplementation): the mod* configuration family doesn't exist
+    // in a non-obfuscated Loom environment - see the Adventure section above for the full
+    // explanation, confirmed via Loom 1.17.12 source.
+    implementation("xyz.nucleoid:stimuli:0.6.2+26.2")?.let {
         include(it)
     }
 
-    modImplementation("com.github.eduardomcb:discord-webhook:1.0.1")?.let {
+    implementation("com.github.eduardomcb:discord-webhook:1.0.1")?.let {
         include(it)
     }
 
-    // Placeholder mods – compileOnly; no 1.21.11 MiniPlaceholders Fabric release yet,
-    // but the API JARs are version-agnostic and work as soft dependencies.
-    modCompileOnly("io.github.miniplaceholders:miniplaceholders-api:2.2.3")
-    modCompileOnly("io.github.miniplaceholders:miniplaceholders-kotlin-ext:2.2.3")
-    modImplementation("eu.pb4:placeholder-api:2.8.2+1.21.10")
+    // Placeholder mods
+    compileOnly("io.github.miniplaceholders:miniplaceholders-api:2.2.3")
+    compileOnly("io.github.miniplaceholders:miniplaceholders-kotlin-ext:2.2.3")
+    implementation("eu.pb4:placeholder-api:3.1.0-beta.1+26.2")
 
-    // Impactor economy – compileOnly since Impactor has no 1.21.11 release.
-    // The integration is guarded by a mod-loaded check at runtime.
-    modCompileOnly("net.impactdev.impactor:common:5.3.0+1.21.1-SNAPSHOT")
-    modCompileOnly("net.impactdev.impactor.api:economy:5.3.0-SNAPSHOT")
-    modCompileOnly("net.impactdev.impactor.api:text:5.3.0-SNAPSHOT")
+    // Impactor economy – compileOnly; no 26.x release yet
+    compileOnly("net.impactdev.impactor:common:5.3.0+1.21.1-SNAPSHOT")
+    compileOnly("net.impactdev.impactor.api:economy:5.3.0-SNAPSHOT")
+    compileOnly("net.impactdev.impactor.api:text:5.3.0-SNAPSHOT")
 
     // Database Storage
     implementation(include("org.mongodb:mongodb-driver-sync:4.11.0")!!)
@@ -125,34 +152,16 @@ dependencies {
     implementation(include("com.h2database:h2:2.2.224")!!)
     implementation(include("com.mysql:mysql-connector-j:8.2.0")!!)
 
-    // Cobblemon – compileOnly; Cobblemon officially targets 1.21.1, not 1.21.11.
-    // Pokemon crate rewards won't function until Cobblemon releases a 1.21.11 build.
-    modCompileOnly("com.cobblemon:fabric:1.7.3+1.21.1-SNAPSHOT")
+    // Cobblemon – compileOnly; no 26.x release yet
+    compileOnly("com.cobblemon:fabric:1.7.3+1.21.1-SNAPSHOT")
 
-    modCompileOnly("io.github.flemmli97:flan:1.21.1-1.12.2-fabric:api") {
-        isTransitive = false
-    }
+    // Flan compileOnly disabled: could not confirm the exact Maven coordinate for a
+    // Minecraft 26.x-compatible build. Re-enable alongside FlanIntegration.kt once verified.
+    // compileOnly("io.github.flemmli97:flan:VERSION-HERE:api") {
+    //     isTransitive = false
+    // }
 
-    modCompileOnly(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-}
-
-tasks.processResources {
-    inputs.property("version", version)
-
-    filesMatching("fabric.mod.json") {
-        expand("version" to version)
-    }
-}
-
-publishing {
-    publications.create<MavenPublication>("maven") {
-        artifactId = base.archivesName.get()
-        from(components["java"])
-    }
-
-    repositories {
-        mavenLocal()
-    }
+    compileOnly(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }
 
 tasks.processResources {
@@ -167,24 +176,34 @@ tasks.processResources {
     }
 }
 
-tasks.remapJar {
+publishing {
+    publications.create<MavenPublication>("maven") {
+        artifactId = base.archivesName.get()
+        from(components["java"])
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
+// 26.x: no remapping, so use the standard jar task instead of remapJar
+tasks.jar {
     archiveFileName.set("${project.name}-fabric-$minecraftVersion-${project.version}.jar")
 }
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.release.set(21)
+    options.release.set(25)
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
     withSourcesJar()
 }
 
 tasks.withType<AbstractArchiveTask> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
     from("LICENSE") {
         rename { "${it}_${modId}" }
     }

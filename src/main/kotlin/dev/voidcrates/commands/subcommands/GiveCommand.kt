@@ -69,7 +69,7 @@ class GiveCommand : SubCommand {
             silent: Boolean = false
         ): Int {
             val crate = ConfigManager.CRATES[crateId] ?: run {
-                ctx.source.sendMessage(Component.text("Crate $crateId could not be found!", NamedTextColor.RED))
+                ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("Crate $crateId could not be found!", NamedTextColor.RED)))
                 return 0
             }
 
@@ -79,25 +79,25 @@ class GiveCommand : SubCommand {
 
             val successful = results.filter { it }.size
             when (successful) {
-                0 -> ctx.source.sendMessage(
+                0 -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                     Component.text("Failed to give ${amount}x $crateId crates to any players!", NamedTextColor.RED)
-                )
+                ))
                 targets.size -> {
                     if (targets.size == 1) {
-                        ctx.source.sendMessage(
+                        ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                             Component.text("Successfully gave ${amount}x $crateId crates to ").color(NamedTextColor.GREEN)
                                 .append(Component.text(targets.firstOrNull()?.gameProfile?.name ?: "UNKNOWN"))
-                        )
+                        ))
                     } else {
-                        ctx.source.sendMessage(
+                        ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                             Component.text("Successfully gave ${amount}x $crateId crates to $successful players!").color(NamedTextColor.GREEN)
-                        )
+                        ))
                     }
                 }
-                else -> ctx.source.sendMessage(
+                else -> ctx.source.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(
                     Component.text("Successfully gave ${amount}x $crateId crates to $successful player(s), " +
                             "but failed to give it to ${targets.size - successful} player(s)!").color(NamedTextColor.YELLOW)
-                )
+                ))
             }
             return 1
         }

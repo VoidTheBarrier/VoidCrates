@@ -670,7 +670,7 @@ object CratesManager {
         val force = crate.failure?.pushback ?: return
         if (openData.location != null) {
             val blockPos = openData.location.getBlockPos()
-            val sourcePos = blockPos.center
+            val sourcePos = Vec3.atCenterOf(blockPos)
             val playerPos = player.position()
 
             val direction = Vec3(

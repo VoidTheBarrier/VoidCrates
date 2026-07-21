@@ -78,7 +78,7 @@ class CrateInventory(
 
             if (returnBag == null) {
                 Utils.printError("No rewards were possible for spinner $id in crate ${crate.id} for player ${player.name.string}. Cancelling crate!")
-                player.sendMessage(Component.text("An error occurred while opening the crate. Please contact an administrator.", NamedTextColor.RED))
+                player.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(Component.text("An error occurred while opening the crate. Please contact an administrator.", NamedTextColor.RED)))
                 isFinished = true
                 close()
                 return@forEach
@@ -123,7 +123,7 @@ class CrateInventory(
         this.setSlot(slot, cachedRewardStacks[reward.id] ?: reward.getDisplayItem(player, reward.getPlaceholders(userData, crate)))
     }
 
-    override fun onClose() {
+    override fun onRemoved() {
         if (!isFinished) {
             if (animation.skippable) {
                 isFinished = true

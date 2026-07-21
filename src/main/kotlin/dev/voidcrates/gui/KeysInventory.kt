@@ -52,7 +52,7 @@ class KeysInventory(viewer: ServerPlayer, private val target: ServerPlayer): Sim
         }.exceptionally {
             Utils.printError("Player data for ${target.name} could not be found while opening keys menu! Is the storage properly initialized?")
             Lang.ERROR_STORAGE.forEach {
-                player.sendMessage(it.asAdventure())
+                player.sendSystemMessage(VoidCrates.INSTANCE.adventure.asNative(it.asAdventure()))
             }
             close()
             return@exceptionally null

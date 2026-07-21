@@ -9,7 +9,6 @@ import eu.pb4.placeholders.api.PlaceholderContext
 import eu.pb4.placeholders.api.PlaceholderResult
 import eu.pb4.placeholders.api.Placeholders
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
-import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.server.level.ServerPlayer
 
@@ -19,14 +18,14 @@ class PlaceholderAPIService : IPlaceholderService {
     }
 
     override fun parsePlaceholders(player: ServerPlayer, text: String): String {
-        return Placeholders.parseText(Component.literal(text), PlaceholderContext.of(player)).string
+        return Placeholders.COMMON_PLACEHOLDER_PARSER.parseComponent(text, PlaceholderContext.of(player).asParserContext()).string
     }
 
     override fun registerPlayer(placeholder: PlayerPlaceholder) {
-        Placeholders.register(Identifier.fromNamespaceAndPath(VoidCrates.MOD_ID, placeholder.id())) { ctx, arg ->
-            val player = ctx.player ?: return@register PlaceholderResult.invalid("NO PLAYER")
+        Placeholders.registerCommon<String>(Identifier.fromNamespaceAndPath(VoidCrates.MOD_ID, placeholder.id())) { ctx, arg ->
+            val player = ctx.player() as? ServerPlayer ?: return@registerCommon PlaceholderResult.invalid("NO PLAYER")
             val result = placeholder.handle(player, arg?.split(":") ?: emptyList())
-            return@register if (result.isSuccessful) {
+            return@registerCommon if (result.isSuccessful) {
                 PlaceholderResult.value(VoidCrates.INSTANCE.adventure.asNative(result.result))
             } else {
                 PlaceholderResult.invalid(PlainTextComponentSerializer.plainText().serialize(result.result))
@@ -35,9 +34,9 @@ class PlaceholderAPIService : IPlaceholderService {
     }
 
     override fun registerServer(placeholder: ServerPlaceholder) {
-        Placeholders.register(Identifier.fromNamespaceAndPath(VoidCrates.MOD_ID, placeholder.id())) { ctx, arg ->
+        Placeholders.registerCommon<String>(Identifier.fromNamespaceAndPath(VoidCrates.MOD_ID, placeholder.id())) { _, arg ->
             val result = placeholder.handle(arg?.split(":") ?: emptyList())
-            return@register if (result.isSuccessful) {
+            return@registerCommon if (result.isSuccessful) {
                 PlaceholderResult.value(VoidCrates.INSTANCE.adventure.asNative(result.result))
             } else {
                 PlaceholderResult.invalid(PlainTextComponentSerializer.plainText().serialize(result.result))

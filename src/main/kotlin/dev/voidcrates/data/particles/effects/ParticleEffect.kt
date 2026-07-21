@@ -31,7 +31,7 @@ abstract class ParticleEffect(
         for (i in 0 until frameCount()) {
             generateParticle(
                 i,
-                instance.pos.bottomCenter
+                Vec3.atBottomCenterOf(instance.pos)
             )?.let { particle ->
                 timeline.addAction(particle)
 

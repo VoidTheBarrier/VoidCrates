@@ -25,11 +25,13 @@ class DebugCommand : SubCommand {
             ConfigManager.CONFIG.debug = newMode
             ConfigManager.saveFile("config.json", ConfigManager.CONFIG)
 
-            ctx.source.sendMessage(
-                if (newMode)
-                    Component.text("Debug mode has been enabled!").color(NamedTextColor.GREEN)
-                else
-                    Component.text("Debug mode has been disabled!", NamedTextColor.RED)
+            ctx.source.sendSystemMessage(
+                VoidCrates.INSTANCE.adventure.asNative(
+                    if (newMode)
+                        Component.text("Debug mode has been enabled!").color(NamedTextColor.GREEN)
+                    else
+                        Component.text("Debug mode has been disabled!", NamedTextColor.RED)
+                )
             )
             return 1
         }

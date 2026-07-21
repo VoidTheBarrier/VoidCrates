@@ -35,7 +35,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.loader.api.FabricLoader
-import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences
+import dev.voidcrates.utils.VoidCratesAudiences
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleTypes
@@ -75,7 +75,7 @@ class VoidCrates : ModInitializer {
     lateinit var configDir: File
     lateinit var storage: IStorage
 
-    lateinit var adventure: MinecraftServerAudiences
+    lateinit var adventure: VoidCratesAudiences
     lateinit var server: MinecraftServer
     lateinit var nbtOpts: RegistryOps<Tag>
 
@@ -130,7 +130,7 @@ class VoidCrates : ModInitializer {
 
     private fun registerEvents() {
         ServerLifecycleEvents.SERVER_STARTING.register(ServerLifecycleEvents.ServerStarting { server: MinecraftServer ->
-            this.adventure = MinecraftServerAudiences.of(server)
+            this.adventure = VoidCratesAudiences(server)
             this.server = server
             this.nbtOpts = server.registryAccess().createSerializationContext(NbtOps.INSTANCE)
             ModIntegration.onServerStarting()

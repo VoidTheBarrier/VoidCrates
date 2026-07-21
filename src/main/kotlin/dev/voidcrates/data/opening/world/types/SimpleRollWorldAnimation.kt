@@ -18,7 +18,7 @@ import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.network.syncher.SynchedEntityData
-import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.phys.Vec3
 import java.util.*
 
@@ -85,7 +85,7 @@ class SimpleRollWorldAnimation(
         ticksPerSpin = spinInterval
         ticksUntilChange = changeInterval
 
-        pos = opening.instance.pos.bottomCenter.add(offset.toVec3())
+        pos = Vec3.atBottomCenterOf(opening.instance.pos).add(offset.toVec3())
 
         if (hideHologram && ModIntegration.HOLODISPLAYS.isModLoaded()) {
             HologramsManager.hideHologramForPlayer(opening.player, opening.instance)
@@ -163,7 +163,7 @@ class SimpleRollWorldAnimation(
                         pos.z,
                         0f,
                         0f,
-                        EntityType.ITEM,
+                        EntityTypes.ITEM,
                         0,
                         Vec3.ZERO,
                         0.0

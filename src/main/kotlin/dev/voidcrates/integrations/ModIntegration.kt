@@ -4,8 +4,10 @@ import dev.voidcrates.integrations.holodisplays.HoloDisplaysIntegration
 import net.fabricmc.loader.api.FabricLoader
 
 enum class ModIntegration(val modId: String, val clazz: Class<out IntegratedMod>) {
-    HOLODISPLAYS("holodisplays", HoloDisplaysIntegration::class.java),
-    FLAN("flan", FlanIntegration::class.java);
+    HOLODISPLAYS("holodisplays", HoloDisplaysIntegration::class.java);
+    // FLAN temporarily disabled: could not confirm the exact Maven coordinate for a
+    // Minecraft 26.x-compatible Flan build. Re-enable once verified - see
+    // FlanIntegration.kt (excluded from compilation in build.gradle.kts)
 
     fun isModLoaded(): Boolean {
         return FabricLoader.getInstance().isModLoaded(modId)

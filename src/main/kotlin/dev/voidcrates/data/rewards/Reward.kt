@@ -33,10 +33,12 @@ abstract class Reward(
         Utils.printDebug("Attempting to execute a ${type.identifier} reward: $this")
 
         Lang.CRATE_REWARD.forEach {
-            player.sendMessage(
-                crate.parsePlaceholders(it)
-                    .replace("%reward_name%", name)
-                    .asAdventure(player)
+            player.sendSystemMessage(
+                VoidCrates.INSTANCE.adventure.asNative(
+                    crate.parsePlaceholders(it)
+                        .replace("%reward_name%", name)
+                        .asAdventure(player)
+                )
             )
         }
 
